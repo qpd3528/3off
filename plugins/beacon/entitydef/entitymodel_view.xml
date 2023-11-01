@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<entitymodel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://ofbiz.apache.org/dtds/entitymodel.xsd">
+    <!-- ========================================================= -->
+    <!-- ======================== Defaults ======================= -->
+    <!-- ========================================================= -->
+    <title>Entity of an Apache OFBiz Component</title>
+    <description>None</description>
+    <version>1.0</version>
+
+    <view-entity entity-name="BeaconStatusDetail" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BCPL" entity-name="Beacon"/>
+        <member-entity entity-alias="BCST" entity-name="BeaconStatus"/>
+        <member-entity entity-alias="STIT" entity-name="StatusItem"/>
+        <alias-all entity-alias="BCPL">
+            <exclude field="statusId"/>
+        </alias-all>
+        <alias-all entity-alias="BCST"/>
+        <alias-all entity-alias="STIT">
+            <exclude field="description"/>
+        </alias-all>
+        <alias name="statusDescription" entity-alias="STIT" field="description"/>
+        <alias entity-alias="BCPL" name="currentStatusId" field="statusId"/>
+        <alias name="statusDelay">
+            <complex-alias operator="-">
+                <complex-alias-field entity-alias="BCST" field="statusDate"/>
+                <complex-alias-field entity-alias="BCPL" field="beaconDate"/>
+            </complex-alias>
+        </alias>
+        <view-link entity-alias="BCPL" rel-entity-alias="BCST">
+            <key-map field-name="beaconId"/>
+        </view-link>
+        <view-link entity-alias="BCST" rel-entity-alias="STIT">
+            <key-map field-name="statusId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="BeaconStatusItem" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="SI" entity-name="StatusItem"/>
+        <alias-all entity-alias="SI"/>
+        <entity-condition>
+            <condition-expr entity-alias="SI" field-name="statusTypeId" operator="equals" value="BEACON_STATUS"/>
+            <order-by field-name="sequenceId"/>
+        </entity-condition>
+    </view-entity>
+    
+    <!-- Some beacons of nested views and conditions for report -->
+    <view-entity entity-name="BeaconFeatureApplAndType" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BCFTAP" entity-name="BeaconFeatureAppl"/>
+        <member-entity entity-alias="BCFTAPTP" entity-name="BeaconFeatureApplType"/>
+        <alias-all entity-alias="BCFTAP"/>
+        <alias-all entity-alias="BCFTAPTP"/>
+        <view-link entity-alias="BCFTAP" rel-entity-alias="BCFTAPTP">
+            <key-map field-name="beaconFeatureApplTypeId"/>
+        </view-link>
+    </view-entity>
+    <view-entity entity-name="BeaconFeatureAndApplAndType" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BCFT" entity-name="BeaconFeature"/>
+        <member-entity entity-alias="EFAAT" entity-name="BeaconFeatureApplAndType"/>
+        <alias-all entity-alias="BCFT"/>
+        <alias-all entity-alias="EFAAT">
+            <exclude field="description"/>
+        </alias-all>
+        <alias name="typeDescription" entity-alias="EFAAT" field="description"/>
+        <view-link entity-alias="BCFT" rel-entity-alias="EFAAT">
+            <key-map field-name="beaconFeatureId"/>
+        </view-link>
+    </view-entity>
+    <view-entity entity-name="BeaconFeatureAndApplFullView" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BC" entity-name="Beacon"/>
+        <member-entity entity-alias="EFAAAT" entity-name="BeaconFeatureAndApplAndType"/>
+        <alias-all entity-alias="BC"/>
+        <alias-all entity-alias="EFAAAT">
+            <exclude field="description"/>
+        </alias-all>
+        <alias name="featureDescription" entity-alias="EFAAAT" field="description"/>
+        <view-link entity-alias="BC" rel-entity-alias="EFAAAT">
+            <key-map field-name="beaconId"/>
+        </view-link>
+    </view-entity>
+    <view-entity entity-name="ContrivedBeaconsWithRequiredFeaturesReport" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="EFAAFV" entity-name="BeaconFeatureAndApplFullView"/>
+        <alias-all entity-alias="EFAAFV"/>
+        <entity-condition>
+            <condition-list combine="and">
+                <condition-expr entity-alias="EFAAFV" field-name="beaconTypeId" operator="equals" value="CONTRIVED"/>
+                <condition-expr entity-alias="EFAAFV" field-name="beaconFeatureApplTypeId" operator="equals" value="REQUIRED"/>
+            </condition-list>
+            <order-by field-name="beaconName"/>
+        </entity-condition>
+    </view-entity>
+
+    <!-- beacon for nested view-entity with conditions on nested views -->
+    <view-entity entity-name="BeaconFeatureApplAndTypeDesired" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BCFTAP" entity-name="BeaconFeatureAppl"/>
+        <member-entity entity-alias="BCFTAPTP" entity-name="BeaconFeatureApplType"/>
+        <alias-all entity-alias="BCFTAP"/>
+        <alias-all entity-alias="BCFTAPTP">
+            <exclude field="description"/>
+        </alias-all>
+        <alias name="typeDescription" entity-alias="BCFTAPTP" field="description"/>
+        <view-link entity-alias="BCFTAP" rel-entity-alias="BCFTAPTP">
+            <key-map field-name="beaconFeatureApplTypeId"/>
+        </view-link>
+        <entity-condition>
+            <condition-expr entity-alias="BCFTAPTP" field-name="beaconFeatureApplTypeId" operator="equals" value="DESIRED"/>
+        </entity-condition>
+    </view-entity>
+    <view-entity entity-name="AllBeaconsWithDesiredCustomerFeaturesReport" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="EFAATD" entity-name="BeaconFeatureApplAndTypeDesired"/>
+        <member-entity entity-alias="BCFT" entity-name="BeaconFeature"/>
+        <member-entity entity-alias="BC" entity-name="Beacon"/>
+        <alias-all entity-alias="EFAATD"/>
+        <alias-all entity-alias="BCFT">
+            <exclude field="description"/>
+        </alias-all>
+        <alias-all entity-alias="BC"/>
+        <alias name="featureDescription" entity-alias="BCFT" field="description"/>
+        <view-link entity-alias="EFAATD" rel-entity-alias="BCFT">
+            <key-map field-name="beaconFeatureId"/>
+        </view-link>
+        <view-link entity-alias="EFAATD" rel-entity-alias="BC">
+            <key-map field-name="beaconId"/>
+        </view-link>
+        <entity-condition>
+            <condition-expr entity-alias="BCFT" field-name="featureSourceEnumId" operator="equals" value="BCFTSRC_CUSTOMER"/>
+            <order-by field-name="beaconName"/>
+        </entity-condition>
+    </view-entity>
+    <!--beacon view for creating charts -->
+    <view-entity entity-name="BeaconCountByType" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BC" entity-name="Beacon"/>
+        <alias entity-alias="BC" name="total" field="beaconId" function="count-distinct"/>
+        <alias entity-alias="BC" name="beaconTypeId" group-by="true"/>
+    </view-entity>
+
+<view-entity entity-name="BeaconTypeView" package-name="org.apache.ofbiz.beacon.beacon">
+        <member-entity entity-alias="BC" entity-name="Beacon"/>
+        <alias entity-alias="BC" name="beaconId" field="beaconId" />
+        <alias entity-alias="BC" name="beaconTypeId" group-by="true"/>
+    </view-entity>
+
+</entitymodel>
